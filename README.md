@@ -146,3 +146,81 @@ Our new version `qwen3-core-claude-agent:latest` is now available.
 Start claude with: `claude --model qwen3-core-claude-agent:latest`
 
 This this setup I was able to successfully run system command, claude determined its own capabilities, and I could ssh to my mini pc and fetch details.
+
+## Claude Skills
+
+We need to leverage claude skills to give our agent some further direction and scope. These skills are simply structured markdown files. These are what set the SOP (Standard Operating Procedures) for the agent. There is a global way to set this for ALL sessions and a project level way to set. We can also set a global 
+
+```bash
+ ~/.claude/                      <-- 1. GLOBAL / PERSONAL LAYER
+ └── skills/
+     └── skillname-action/       <-- Give the folden a name with an intent
+         └── SKILL.md            <-- Available in ALL your terminal sessions
+
+ [your-project-folder]/          <-- 2. PROJECT LAYER
+ └── .claude/
+     └── skills/
+         └── skillname-action/   <-- Give the folden a name with an intent
+             └── SKILL.md        <-- Only available inside this specific repository
+
+ [your-project-folder]/          <-- 3. PROJECT LAYER
+ └── CLAUDE.md                   <-- static project memory
+```
+
+- CLAUDE.md
+    - Tells the model everything it needs to know about your codebase/project on session initialization
+    - Build and Test Commands, tell the model how to build, test, run the app with exact commands
+    - Cody Style Guidelines
+        - What language, what type of program components, imperitive etc...
+    - Architecture notes
+        - Tell the model where specific useful files live like (IP list X, csv Y is here)
+    - CLAUDE.md fully loads on EVERY turn/step so keep it as short as possible otherwise it will eat the context window rapidly
+- ~/.claude/skills
+    - These are skills that can be used across multiple projects
+        - git commit message formatter
+        - code styling
+- ~/myproject/.claude/skills
+    - How to handle localized workflow specific to this exact code/project
+    - Deployment, testing, specific executions
+
+Skills have 3 main components, the YAML metadata block and the body which contains the content, and resources (optional).
+
+YAML Frontmatter: Requires a skill name and skill description
+
+```yaml
+---
+name: system-ping-check
+description: Pings various infrastructure systems, checks success or failure status, and measures latency. Use when checking uptime, network health, or endpoint performance.
+allowed-tools: [bash]
+---
+```
+
+Body/Content: This is the actual work/content that the model will use. It should contain procedures, knowledge, workflows, best practice and any guidance.
+
+```bash
+# System Ping Check
+
+## Parameters
+* **host**: The target IP address or domain name (e.g., `10.0.0.102` or `google.com`).
+
+## Quick Start
+Use the terminal utility `ping` to gather packet loss and latency data about a host. 
+
+### Execution Rules
+* **Count Limit**: You must always limit the ping to a maximum count of 4 to prevent hanging the terminal session.
+* **Syntax**: Use the `-c` flag followed by the count.
+
+### Example Command
+```bash
+ping -c 4 <host>
+```
+
+### Expected Output Interpretation
+* **Success**: 0% packet loss, valid round-trip time (rtt) min/avg/max values.
+* **Failure**: 100% packet loss, "Unknown host", or "Request timeout".
+* **Warning**: When round-trip time exceeds 100 ms for avg or max values.
+```
+
+
+
+
