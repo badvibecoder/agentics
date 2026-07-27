@@ -273,3 +273,88 @@ tests.
 This doesn't scale and is about as inefficient as possible, takes way to much power and vram to just ping somethings. However we can execute commands, leverage local tools, and use the llm to determine success on those commands. Writing code/ansible to execute pings across a cluster of x nodes, logging the output then processing that output looking for outliers would be something an llm can do without writing code. The same goes for drivers, udev rules, grub, and just about anything system related. 
 
 The trick is to know what you want to execute and how to get data, then let the model interpret the data.
+
+Claude also cannot run as root, there are other limitations but it can fully employ ansible. There is even an MCP (API) for claude to interact with ansible. I also try to build a base myself then translate that over to some form of ansible task, or break down into python and have ansible distribute and execute. One of the issues with large scale systems is accounting for issues, errors, things that you would have to read and cannot easily account for with a if/then/switch logic. But the llm can read the output and infer much more than we can easily account for in code.
+
+Lets try another skill and setup claude code to not require sudo for running elevated commands in arch.
+
+```bash
+which claude
+# /home/yourusername/.local/bin/claude
+
+sudo visudo -f /etc/sudoers.d/claude-code
+
+# add the line
+yourusername ALL=(ALL) NOPASSWD: /home/yourusername/.local/bin/claude
+# save and exit
+```
+
+This will ensure claude has root but we need to make sure the user (yours or a service account) will have passwordless sudo to tools as well.
+
+```bash
+# create a new file
+sudo visudo -f /etc/sudoers.d/claude-system
+
+# add the line
+yourusername ALL=(ALL) NOPASSWD: /usr/bin/systemctl, /usr/bin/hostnamectl, /usr/bin/netplan, /usr/bin/ip, /usr/bin/ssh, /usr/bin/udevadm, /usr/bin/grub-mkconfig, /usr/bin/grub-install, /usr/bin/fwupdmgr, /usr/bin/modprobe, /usr/bin/journalctl, /usr/bin/dmesg, /usr/bin/lshw, /usr/bin/pacman
+# add any bin tool or service that you want claude to access
+```
+
+The simpler alternative would be to create a claude service account and just give it access to everything.
+
+Lets make a simple skill that requires sudo.
+
+```bash
+---
+name: check-amd-overdrive
+description: Run this skill to inspect dmesg logs and check if AMD OverDrive is active.
+allowed-tools: [Bash]
+---
+
+# Check AMD Overdrive
+You must immediately invoke the `Bash` tool to inspect the system kernel log. Do not return or attempt to invoke the <function=Skill>`tag again.
+
+## Step 1: Execution
+Run this exact terminal string via your Bash execution tool:
+```bash
+sudo dmesg | grep -i "overdrive"
+```
+
+## Step 2: Interpretation
+* If the output contains line matches saying "overdrive enabled", inform the user it is active.
+* If the terminal yields no output or indicates it is disabled, inform the user it is off.
+```
+
+My prompt: "/check-amd-overdrive"
+
+Output:
+
+```bash
+❯ /check-amd-overdrive
+
+● I'll check if AMD Overdrive is enabled on this system by examining the kernel log.
+
+● Bash(sudo dmesg | grep -i "overdrive")
+⎿  [    8.329361] amdgpu: Overdrive is enabled, please disable it before reporting any bugs unrelated to overdrive.
+
+● I found a message in the kernel log indicating that AMD Overdrive is currently enabled on your system:
+
+[    8.329361] amdgpu: Overdrive is enabled, please disable it before reporting any bugs unrelated to overdrive.
+
+This message appears during system boot, suggesting that AMD Overdrive is active. The system is warning users to disable it when
+reporting bugs unrelated to Overdrive functionality.
+
+If you're experiencing issues with your AMD GPU or want to ensure stable performance, you may want to consider disabling AMD
+Overdrive. However, if you're specifically testing or using Overdrive features, this message indicates that the feature is active and
+functioning.
+
+✻ Crunched for 16s
+```
+
+### We Have Overcome `sudo` Limits With Claude
+
+This again is great, but it does not scale whatsoever. We cannot simply use claude to login to 10000 nodes to analyze and troubleshoot. But its a step in the right direction. We are able to overcome the sudo limitation and get dmesg logs which means we can also do other oneshot commands that do not require input but do need sudo.
+
+I think the next step is to loop in ansible, which enables us for nearly all the system mgmt/statemgmt features we could want. It also allows claude to scale to massive levels. We can leverage ansible's sudo access, package mgmt, code deployment and use claude to drive decisions and if needed step in as a level one troubleshooter so we dont waste time logging into singletons to find out a link is down or a netplan wasnt applied etc...
+
+
