@@ -4,7 +4,7 @@ Tracking the setup and use of claude code for infrastructure tasks.
 
 ## RoCM vs VULKAN on 7900 XTX Ollama Backend
 
-We need to validate RoCM vs Vulkan for the backend. There are close enough on smaller and MoE models they are effectively the same, dense models it looks like RoCM may be more efficient. We will stick with RoCM. 
+We need to validate RoCM vs Vulkan for the backend. They are close enough on smaller and MoE models they are effectively the same, dense models it looks like RoCM may be more efficient. We will stick with RoCM. 
 
 Insall the current RoCM version for your distro.
 
@@ -32,9 +32,134 @@ Environment="OLLAMA_FLASH_ATTENTION=1"
 Environment="OLLAMA_KV_CACHE_TYPE=q8_0"
 ```
 
+### Sidequest - GFX Verions
+
+List of overrides.
+
+```bash
+================================================================================
+GCN (Graphics Core Next) Architectures
+================================================================================
+
+GFX6 (GCN 1.0 / Southern Islands):
+  - gfx600 (Tahiti)
+  - gfx601 (Pitcairn)
+
+GFX7 (GCN 2.0 / Sea Islands):
+  - gfx700 (Kaveri APU)
+  - gfx701 (Hawaii - R9 290)
+
+GFX8 (GCN 3.0 & 4.0 / Volcanic & Arctic Islands):
+  - gfx801 (Carrizo)
+  - gfx803 (Fiji / Polaris - RX 480/580)
+
+GFX9 (GCN 5.0 & 5.1 / Vega):
+  - gfx900 (Vega 56/64)
+  - gfx902 (Raven Ridge APU)
+  - gfx906 (Radeon VII / MI50)
+
+================================================================================
+CDNA (Data Center / Instinct) Architectures
+================================================================================
+
+GFX9.0.A (CDNA 1 & 2):
+  - gfx908 (Instinct MI100)
+  - gfx90a (Instinct MI250X)
+
+GFX9.4 (CDNA 3):
+  - gfx940 (Instinct MI300A / MI300X)
+  - gfx941 (Instinct MI300A / MI300X)
+  - gfx942 (Instinct MI300A / MI300X)
+qwen3-coder:30b-a3b-q8_0
+================================================================================
+RDNA (Radeon DNA) Consumer Architectures
+================================================================================
+
+[RDNA 1 (Navi 1x)]
+GFX10.1.0: gfx1010 (Navi 10 - RX 5700 XT)
+GFX10.1.1: gfx1011 (Navi 12)
+GFX10.1.2: gfx1012 (Navi 14 - RX 5500 XT)
+
+[RDNA 2 (Navi 2x)]
+GFX10.3.0: gfx1030 (Navi 21 - RX 6800 / 6900 XT)
+GFX10.3.1: gfx1031 (Navi 22 - RX 6700 XT)
+GFX10.3.2: gfx1032 (Navi 23 - RX 6600 XT)
+GFX10.3.4: gfx1034 (Navi 24 - RX 6400 / 6500 XT)
+GFX10.3.5: gfx1035 (Rembrandt / Mendocino APUs - Radeon 680M)
+GFX10.3.6: gfx1036 (Sabrina APU)
+
+[RDNA 3 / RDNA 3.5 (Navi 3x)]
+GFX11.0.0: gfx1100 (Navi 31 - RX 7900 XTX)
+GFX11.0.1: gfx1101 (Navi 32 - RX 7700 XT / 7800 XT)
+GFX11.0.2: gfx1102 (Navi 33 - RX 7600 XT)
+GFX11.0.3: gfx1103 (Phoenix / Hawk Point APUs - Radeon 780M)
+GFX11.5.0: gfx1150 (Strix Point APUs - Ryzen AI 9 / Radeon 890M)
+GFX11.5.1: gfx1151 (Strix Halo APUs)
+
+[RDNA 4 & 4m (Navi 4x)]
+GFX11.7.0: gfx1170 (RDNA 4m APU architectures)
+GFX11.7.1: gfx1171 (Mobile variants)
+GFX11.7.2: gfx1172 (Mobile variants)
+GFX12.0.0: gfx1200 (Navi 44 - RX 9060 Series)
+GFX12.0.1: gfx1201 (Navi 48 - RX 9070 ￼XT / Pro R9700)
+```
+
 ## Deciding Which Model to Use
 
-TBD
+Must have:
+
+- Native tool calling
+- Prefer dense models but MoE will work as well
+- 27b-35b models for large 24GB-32GB single gpu setups
+- 70b+ models for large dual gpu setups (48-64GB)
+- Non-thinking models
+- Suggested Models
+    - Qwen3-Coder (30B Dense)
+    - Qwen 2.5 Coder (32B Instruct)
+    - Qwen 3.6 (27B Dense)
+
+If you are running a single gpu and have a good amount of system RAM, 64-128G don't be afraid to grab a larger quant model than you think. There is a significant quality drop off between q8 and q4 for models under 35-40b parameters. It does depend on how the model is trained and structured, however over subscribing and getting a q8 model even if slower may perform much better at keeping the context straight over longer runs.
+
+For instance:
+
+- Speed Check between q4/q8
+    - 9800X3D - 96GB 6000 - 7900 XTX 24GB
+        - qwen3-coder:30b-a3b-q4_K_M
+            - 109.75 tokens/s
+        - qwen3-coder:30b-a3b-q8_0
+            - 24.83 tokens/s
+
+25 tokens a second is pleanty fast if it indeed keeps the accuracy near perfect and during long sessions with deep context keep the halucinations and looping to a minimum.
+
+CPU/GPU splits
+
+```bash
+╰─λ ollama ps
+NAME                              ID              SIZE     PROCESSOR    CONTEXT    UNTIL
+qwen3-core-claude-agent:latest    f1cb65d8300f    22 GB    100% GPU     65536      4 minutes from now
+
+total duration:       5.02384267s
+load duration:        98.112513ms
+prompt eval count:    170 token(s)
+prompt eval duration: 203.945ms
+prompt eval rate:     833.56 tokens/s
+eval count:           518 token(s)
+eval duration:        4.719938s
+eval rate:            109.75 tokens/s
+
+╰─λ ollama ps
+NAME                                 ID              SIZE     PROCESSOR          CONTEXT    UNTIL
+qwen3-code-q8-claude-agent:latest    553988006ba1    36 GB    33%/67% CPU/GPU    65536      4 minutes from now
+
+total duration:       11.776264955s
+load duration:        97.702624ms
+prompt eval count:    170 token(s)
+prompt eval duration: 36.93ms
+prompt eval rate:     4603.30 tokens/s
+eval count:           289 token(s)
+eval duration:        11.639627s
+eval rate:            24.83 tokens/s
+```
 
 ## Ollama Setup
 
@@ -307,23 +432,15 @@ Lets make a simple skill that requires sudo.
 ````bash
 ---
 name: check-amd-overdrive
-description: Run this skill to inspect dmesg logs and check if AMD OverDrive is active.
+description: Run a bash command to check AMD OverDrive status in dmesg.
 allowed-tools: [Bash]
 ---
+Execute this exact Bash command right now. Do not write an introduction. Do not use code blocks. Just run the tool.
 
-# Check AMD Overdrive
-You must immediately invoke the `Bash` tool to inspect the system kernel log. Do not return or attempt to invoke the <function=Skill>`tag again.
+Command: sudo dmesg | grep -i "overdrive"
 
-## Step 1: Execution
-Run this exact terminal string via your Bash execution tool:
-
-```bash
-sudo dmesg | grep -i "overdrive"
-```
-## Step 2: Interpretation
-
-* If the output contains line matches saying "overdrive enabled", inform the user it is active.
-* If the terminal yields no output or indicates it is disabled, inform the user it is off.
+If the output says "enabled", reply: AMD OverDrive is active.
+If the output is empty, reply: AMD OverDrive is disabled.
 ````
 
 My prompt: "/check-amd-overdrive"
@@ -333,24 +450,17 @@ Output:
 ```bash
 ❯ /check-amd-overdrive
 
-● I'll check if AMD Overdrive is enabled on this system by examining the kernel log.
-
 ● Bash(sudo dmesg | grep -i "overdrive")
-⎿  [    8.329361] amdgpu: Overdrive is enabled, please disable it before reporting any bugs unrelated to overdrive.
+⎿  [    8.279801] amdgpu: Overdrive is enabled, please disable it before reporting any bugs unrelated to overdrive.
 
-● I found a message in the kernel log indicating that AMD Overdrive is currently enabled on your system:
+● AMD OverDrive is active.
 
-[    8.329361] amdgpu: Overdrive is enabled, please disable it before reporting any bugs unrelated to overdrive.
-
-This message appears during system boot, suggesting that AMD Overdrive is active. The system is warning users to disable it when
-reporting bugs unrelated to Overdrive functionality.
-
-If you're experiencing issues with your AMD GPU or want to ensure stable performance, you may want to consider disabling AMD
-Overdrive. However, if you're specifically testing or using Overdrive features, this message indicates that the feature is active and
-functioning.
-
-✻ Crunched for 16s
+✻ Cooked for 3s
 ```
+
+I had to play with the skill file a bit, sometimes it would go back and forth between executing and simply pasting my text into <function> which does nothing.
+
+One issue I was having was putting the code in markdown code blocks, this was not being interpretted reliably. Stripping the introduction post yaml data. Then pasting the command as a raw string and not in quotes or a block made the parser happy.
 
 ### We Have Overcome `sudo` Limits With Claude
 
