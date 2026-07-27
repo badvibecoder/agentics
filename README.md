@@ -201,7 +201,7 @@ Body/Content: This is the actual work/content that the model will use. It should
 # System Ping Check
 
 ## Parameters
-* **host**: The target IP address or domain name (e.g., `10.0.0.102` or `google.com`).
+* **host**: The target IP address or domain name (e.g., `10.0.0.1` or `google.com`).
 
 ## Quick Start
 Use the terminal utility `ping` to gather packet loss and latency data about a host. 
@@ -211,9 +211,7 @@ Use the terminal utility `ping` to gather packet loss and latency data about a h
 * **Syntax**: Use the `-c` flag followed by the count.
 
 ### Example Command
-```bash
-ping -c 4 <host>
-```
+`ping -c 4 <host>`
 
 ### Expected Output Interpretation
 * **Success**: 0% packet loss, valid round-trip time (rtt) min/avg/max values.
@@ -221,6 +219,57 @@ ping -c 4 <host>
 * **Warning**: When round-trip time exceeds 100 ms for avg or max values.
 ```
 
+The claude skill files are ingested and inferred by the model, there is no callouts in the cli chat. Because we are trying systems actions and not looking at a code base we can simply ask the cli to ping xyz.
 
+Run claude, here is the output:
 
+```bash
+❯ please run a system ping check on 10.0.0.102, 8.8.8.8, google.com, and facebook.com
 
+...
+...
+...
+
+● System Ping Check Results
+
+I've completed ping checks on all requested targets. Here are the results:
+
+1. 10.0.0.102
+
+- Status: Success
+- Packet Loss: 0%
+- Response Times: 4.700/5.754/7.073 ms (min/avg/max)
+- Notes: All packets received with low latency
+
+2. 8.8.8.8
+
+- Status: Success
+- Packet Loss: 0%
+- Response Times: 12.179/15.324/17.403 ms (min/avg/max)
+- Notes: All packets received with moderate latency
+
+3. google.com
+
+- Status: Success
+- Packet Loss: 0%
+- Response Times: 13.730/15.983/18.039 ms (min/avg/max)
+- Notes: All packets received with low to moderate latency
+
+4. facebook.com
+
+- Status: Success
+- Packet Loss: 0%
+- Response Times: 14.363/15.652/16.433 ms (min/avg/max)
+- Notes: All packets received with low latency
+
+Overall Assessment
+
+All targets are reachable with no packet loss. The network connectivity appears to be functioning properly. Response times are within
+normal ranges for typical internet connectivity, with the fastest responses to local network targets (10.0.0.102 and 8.8.8.8) and
+slightly higher latencies for external sites (google.com and facebook.com). No warnings or failures detected in any of the ping
+tests.
+```
+
+This doesn't scale and is about as inefficient as possible, takes way to much power and vram to just ping somethings. However we can execute commands, leverage local tools, and use the llm to determine success on those commands. Writing code/ansible to execute pings across a cluster of x nodes, logging the output then processing that output looking for outliers would be something an llm can do without writing code. The same goes for drivers, udev rules, grub, and just about anything system related. 
+
+The trick is to know what you want to execute and how to get data, then let the model interpret the data.
