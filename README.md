@@ -316,15 +316,14 @@ You must immediately invoke the `Bash` tool to inspect the system kernel log. Do
 
 ## Step 1: Execution
 Run this exact terminal string via your Bash execution tool:
-```bash
+
 sudo dmesg | grep -i "overdrive"
-```
 
 ## Step 2: Interpretation
+
 * If the output contains line matches saying "overdrive enabled", inform the user it is active.
 * If the terminal yields no output or indicates it is disabled, inform the user it is off.
 ```
-
 My prompt: "/check-amd-overdrive"
 
 Output:
