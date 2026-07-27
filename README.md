@@ -255,20 +255,20 @@ Save and exit.
 
 With our KVCACHE set to FP8 we should be able to keep all of this context on VRAM. If it does spill over we should still have good speeds.
 
-Create the customized version: `ollama create qwen3-core-claude-agent -f ./Modelfile`
+Create the customized version: `ollama create qwen3-code-claude-agent -f ./Modelfile`
 
 ```bash
 ╰─λ ollama list | grep qwen3
-qwen3-core-claude-agent:latest               f1cb65d8300f    18 GB     15 seconds ago
+qwen3-code-claude-agent:latest               f1cb65d8300f    18 GB     15 seconds ago
 qwen3.6:35b-a3b-q4_K_M                       07d35212591f    23 GB     25 hours ago
 rafw007/qwen36-a3b-claude-coder:latest       36853d5c1fed    23 GB     34 hours ago
 qwen3.6:27b                                  a50eda8ed977    17 GB     34 hours ago
 qwen3-coder:30b                              06c1097efce0    18 GB     2 days ago
 ```
 
-Our new version `qwen3-core-claude-agent:latest` is now available.
+Our new version `qwen3-code-claude-agent:latest` is now available.
 
-Start claude with: `claude --model qwen3-core-claude-agent:latest`
+Start claude with: `claude --model qwen3-code-claude-agent:latest`
 
 This this setup I was able to successfully run system command, claude determined its own capabilities, and I could ssh to my mini pc and fetch details.
 
