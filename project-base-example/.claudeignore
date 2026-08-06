@@ -1,0 +1,123 @@
+# =====================================================================
+# .claudeignore — data-hygiene exclusions for the external API backend
+# ---------------------------------------------------------------------
+# Anything matched here is NEVER read into context and NEVER sent to
+# the remote API. Keep this file strict: when in doubt, list it.
+# =====================================================================
+
+# --- Version control internals -----------------------------------------
+.git/
+
+# --- Environment / configuration secrets -------------------------------
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+.ssh/
+
+# --- Application secrets -----------------------------------------------
+secrets.yml
+secrets.yaml
+secret.*
+*.secret
+*.token
+*.apikey
+*.api_key
+credentials.yml
+credentials.yaml
+passwords.yml
+passwords.yaml
+aws-credentials
+.gcs_credentials
+service-account*.json
+vault-pass
+.vault-pass
+
+# --- Python bytecode & caches ------------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Logs & runtime artifacts ------------------------------------------
+*.log
+*.log.*
+*.out
+*.err
+journal/
+logs/
+core
+
+# --- Local databases & state files --------------------------------------
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.ldb
+*.sst
+*.mdb
+*.state
+*.pid
+*.lock
+*.session
+*.swp
+*.tmp
+
+# --- Virtualenvs & heavy dependency dirs --------------------------------
+.venv/
+venv/
+env/
+node_modules/
+.bundle/
+vendor/
+target/
+build/
+dist/
+
+# --- Binary / archive / media blobs -------------------------------------
+*.whl
+*.tar.gz
+*.tgz
+*.zip
+*.gz
+*.xz
+*.bz2
+*.iso
+*.img
+*.qcow2
+*.vmdk
+*.pcap
+*.bin
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.webm
+*.mp3
+data/
+artifacts/
+backup*/
+
+# --- OS junk ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.desktop.ini
+
+# --- Local Claude state (personal overrides stay local) -----------------
+.claude/settings.local.json
