@@ -221,17 +221,15 @@ ollama launch claude --model somemodelhere
 
 # If you are using something outside of the claude and local like Deepseek for cheap api based tool calling:
 
-# Add all model mapping aliases:
 set -gx ANTHROPIC_BASE_URL "https://api.deepseek.com/anthropic"
-set -gx ANTHROPIC_API_KEY "your_deepseek_api_key"
+set -gx ANTHROPIC_API_KEY "your-key-here"
 set -gx CLAUDE_CODE_EFFORT_LEVEL "medium"
-
-# Map all tier routes to DeepSeek Flash
+# 1024 tokens will get you 90-95% of the reasoning required for non massive projects
+set -gx MAX_THINKING_TOKENS 1024
 set -gx ANTHROPIC_DEFAULT_OPUS_MODEL "deepseek-v4-flash"
 set -gx ANTHROPIC_DEFAULT_SONNET_MODEL "deepseek-v4-flash"
 set -gx ANTHROPIC_DEFAULT_HAIKU_MODEL "deepseek-v4-flash"
 set -gx CLAUDE_CODE_SUBAGENT_MODEL "deepseek-v4-flash"
-
 ```
 
 ## Optimize Models
